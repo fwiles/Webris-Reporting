@@ -1,5 +1,5 @@
 {
-  "_comment": "Optional overlay metadata. KV snapshots decide which dashboards EXIST; this file only adds Drive links + branding. A client with no entry here still gets a dashboard (with empty driveLinks). Match on windsorAccountName OR windsorAccountId. Keys are the client slug.",
+  "_comment": "Optional overlay metadata. KV snapshots decide which dashboards EXIST; this file only adds Drive links + branding. A client with no entry here still gets a dashboard (with empty driveLinks). Match on windsorAccountId, windsorAccountName, OR slug key. driveLinks update on the next cron refresh (or manual /api/cron/refresh).",
 
   "_exclude": ["The Blueprint Training 2"],
 
@@ -9,9 +9,79 @@
     "displayName": "Steinger, Greene & Feiner",
     "eyebrow": "P&A · Facebook Ads",
     "driveLinks": [
-      { "label": "Ad Creatives", "icon": "🎬", "url": "https://drive.google.com/drive/folders/1ksVZn4JVzxH6EGfLnW_A2zdDDQH1CA-s" },
-      { "label": "Upload Folder", "icon": "📁", "url": "https://drive.google.com/drive/folders/1hisQJ7o2dCcql52UrdrgTP3g8QAGTnUY" },
+      { "label": "Ads", "icon": "🎬", "url": "https://drive.google.com/drive/folders/1ksVZn4JVzxH6EGfLnW_A2zdDDQH1CA-s" },
+      { "label": "Client Uploads", "icon": "📁", "url": "https://drive.google.com/drive/folders/1hisQJ7o2dCcql52UrdrgTP3g8QAGTnUY" },
       { "label": "Creative Requests", "icon": "✏️", "url": "https://drive.google.com/drive/folders/1Q-VMtWd-GDH_to4xFp-N9V07l0df_dDK" }
+    ]
+  },
+
+  "borunda-fomby": {
+    "windsorAccountId": "1061428132703532",
+    "windsorAccountName": "AC - Borunda & Fomby PLLC",
+    "displayName": "Borunda & Fomby PLLC",
+    "eyebrow": "P&A · Facebook Ads",
+    "driveLinks": [
+      { "label": "Ads", "icon": "🎬", "url": "https://drive.google.com/drive/folders/1G5I_dTsTtg5IbnHxh4x-sjoE6oe11eyA" },
+      { "label": "Client Uploads", "icon": "📁", "url": "https://drive.google.com/drive/folders/1U6ILaY9U57bjLOPl1_9FHHAily_p7sv5" },
+      { "label": "Creative Requests", "icon": "✏️", "url": "https://drive.google.com/drive/folders/1iZtL8TsBlwS9F5xHBfFNZ2PqHoe5JDQM" }
+    ]
+  },
+
+  "shook-stone": {
+    "windsorAccountId": "1107625439858180",
+    "windsorAccountName": "Shook & Stone Meta Ads",
+    "displayName": "Shook & Stone",
+    "eyebrow": "P&A · Facebook Ads",
+    "driveLinks": [
+      { "label": "Ads", "icon": "🎬", "url": "https://drive.google.com/drive/folders/1YXcgf-HAgVGJStezS0I--ARQFYJdeSBY" },
+      { "label": "Client Uploads", "icon": "📁", "url": "https://drive.google.com/drive/folders/1ZyXGmJVj7JhkXE2rjiB8gaO2fnOS4HhR" },
+      { "label": "Creative Docs", "icon": "✏️", "url": "https://drive.google.com/drive/folders/1Xkbq3HLA30b7tHBD_n_CC1ZLaPaJQSx7" }
+    ]
+  },
+
+  "sweet-law": {
+    "windsorAccountId": "2504979786463966",
+    "windsorAccountName": "Sweet Law",
+    "displayName": "Sweet Law",
+    "eyebrow": "P&A · Facebook Ads",
+    "driveLinks": [
+      { "label": "Ads", "icon": "🎬", "url": "https://drive.google.com/drive/folders/1mIAhmxLCotilJX7El5x92qmkGAFQ0fTd" },
+      { "label": "Client Uploads", "icon": "📁", "url": "https://drive.google.com/drive/folders/1oT26egLlSjLaCGD8nrdgPRap-yNDNsw1" },
+      { "label": "Creative Requests", "icon": "✏️", "url": "https://drive.google.com/drive/folders/16xbdl8h_ideXQHlHMyAofcIB3Wpoxsmt" }
+    ]
+  },
+
+  "chris-ligori-associates": {
+    "windsorAccountId": "1793107131588834",
+    "windsorAccountName": "AC - Chris Ligori & Associates",
+    "displayName": "Chris Ligori & Associates",
+    "eyebrow": "P&A · Facebook Ads",
+    "driveLinks": [
+      { "label": "Ads", "icon": "🎬", "url": "https://drive.google.com/drive/folders/1__zwbMThyGUgBAU2T2EpkpEHIbUwVuTw" },
+      { "label": "Client Uploads", "icon": "📁", "url": "https://drive.google.com/drive/folders/1ZoxZ2bvGN4fRN6s058fdkixLNNOGlgIj" },
+      { "label": "Creative Requests", "icon": "✏️", "url": "https://drive.google.com/drive/folders/1MREI8AEBxWuoTCf607w-YStWvlbWC4Wl" }
+    ]
+  },
+
+  "brighter-day-law-ad-account": {
+    "windsorAccountName": "Brighter Day Law Ad Account",
+    "displayName": "Brighter Day Law",
+    "eyebrow": "P&A · Facebook Ads",
+    "driveLinks": [
+      { "label": "Ads", "icon": "🎬", "url": "https://drive.google.com/drive/folders/1fDJLoXC4pEHSnHQYqOkGyQvHcTYlU40Z" },
+      { "label": "Client Uploads", "icon": "📁", "url": "https://drive.google.com/drive/folders/1FYm0I9JAhbngYLAweTBY2bzruXDbAyAz" },
+      { "label": "Creative Requests", "icon": "✏️", "url": "https://drive.google.com/drive/folders/1tag-YQ1JnjoLr7DZYWeMyp_o-qWwBdz7" }
+    ]
+  },
+
+  "cls-law-new-2": {
+    "windsorAccountName": "CLS Law New 2",
+    "displayName": "CLS Law",
+    "eyebrow": "P&A · Facebook Ads",
+    "driveLinks": [
+      { "label": "Ads", "icon": "🎬", "url": "https://drive.google.com/drive/folders/1zG9spp2s6MkgNJLfanHZnNjxzveOLszh" },
+      { "label": "Client Uploads", "icon": "📁", "url": "https://drive.google.com/drive/folders/1R2_On0I-I9fPflIsLl6ji_W0CD1QAH9T" },
+      { "label": "Creative Requests", "icon": "✏️", "url": "https://drive.google.com/drive/folders/10Ml_QPkfVKi6XxY_C6WYIaXZsH7WY220" }
     ]
   },
 
@@ -25,36 +95,37 @@
     ]
   },
 
-  "chris-ligori-associates": {
-    "windsorAccountId": "1793107131588834",
-    "windsorAccountName": "AC - Chris Ligori & Associates",
-    "displayName": "Chris Ligori & Associates",
+  "scholle-law": {
+    "windsorAccountName": "Scholle Law",
+    "displayName": "Scholle Law",
     "eyebrow": "P&A · Facebook Ads",
-    "driveLinks": []
+    "driveLinks": [
+      { "label": "Ads", "icon": "🎬", "url": "https://drive.google.com/drive/folders/1npGS8PXkK8pi1dwiyAcbj7bQW2sCUqI9" },
+      { "label": "Client Uploads", "icon": "📁", "url": "https://drive.google.com/drive/folders/1VvWPkGEpuR-qfmI2fr3nkfZt19sbJu7X" },
+      { "label": "Creative Docs", "icon": "✏️", "url": "https://drive.google.com/drive/folders/1kuEpL6x9w5tZjXV_rlD21TU19KwKHFJi" }
+    ]
   },
 
-  "sweet-law": {
-    "windsorAccountId": "2504979786463966",
-    "windsorAccountName": "Sweet Law",
-    "displayName": "Sweet Law",
+  "albers-injury-law": {
+    "windsorAccountName": "Albers Injury Law",
+    "displayName": "Albers Injury Law",
     "eyebrow": "P&A · Facebook Ads",
-    "driveLinks": []
+    "driveLinks": [
+      { "label": "Ads", "icon": "🎬", "url": "https://drive.google.com/drive/folders/1Q9J_ERnZZJn536QP94QsyMJnB8dtcs5z" },
+      { "label": "Client Uploads", "icon": "📁", "url": "https://drive.google.com/drive/folders/16prwa1kXqzzSj7RsSUW4gZ-hZnu_Tn9A" },
+      { "label": "Creative Requests", "icon": "✏️", "url": "https://drive.google.com/drive/folders/1X4II_fwLYZtgLOCgH5xx6ozzPg-7_0ZX" }
+    ]
   },
 
-  "shook-stone": {
-    "windsorAccountId": "1107625439858180",
-    "windsorAccountName": "Shook & Stone Meta Ads",
-    "displayName": "Shook & Stone",
+  "the-finkel-firm": {
+    "windsorAccountName": "The Finkel Firm",
+    "displayName": "The Finkel Firm",
     "eyebrow": "P&A · Facebook Ads",
-    "driveLinks": []
-  },
-
-  "borunda-fomby": {
-    "windsorAccountId": "1061428132703532",
-    "windsorAccountName": "AC - Borunda & Fomby PLLC",
-    "displayName": "Borunda & Fomby PLLC",
-    "eyebrow": "P&A · Facebook Ads",
-    "driveLinks": []
+    "driveLinks": [
+      { "label": "Ads", "icon": "🎬", "url": "https://drive.google.com/drive/folders/19SuU-6gLi2Sw0Wo_j7bcgrYR7Zfumku4" },
+      { "label": "Client Uploads", "icon": "📁", "url": "https://drive.google.com/drive/folders/1PjPGXcsqLMwtg0BbyeEn6dZ6HjJ1hXqG" },
+      { "label": "Creative Requests", "icon": "✏️", "url": "https://drive.google.com/drive/folders/1ro_sHWybzi5GOaE-aqv5aC_pid9NtCQL" }
+    ]
   },
 
   "rodriguez-law-firm": {
@@ -65,19 +136,13 @@
     "driveLinks": []
   },
 
-  "the-case-ace": {
-    "windsorAccountId": "1089345192842824",
-    "windsorAccountName": "The Case Ace",
-    "displayName": "The Case Ace",
-    "eyebrow": "P&A · Facebook Ads",
-    "driveLinks": []
-  },
-
   "slip-and-fall-webris": {
     "windsorAccountId": "631719819766655",
     "windsorAccountName": "slip and fall webris",
     "displayName": "Slip and Fall",
     "eyebrow": "P&A · Facebook Ads",
-    "driveLinks": []
+    "driveLinks": [
+      { "label": "Ads", "icon": "🎬", "url": "https://drive.google.com/drive/folders/1MuADbkKIEpEXBEYG1T415Rl3M0LCjefb" }
+    ]
   }
 }
