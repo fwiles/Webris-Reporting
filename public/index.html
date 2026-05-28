@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webris · Client Dashboards</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f8f7f4; color: #5a5862; font-size: 13px; line-height: 1.6; }
+
+.nav { display: flex; align-items: center; justify-content: space-between; padding: 0 28px; height: 52px; background: rgba(248,247,244,0.97); border-bottom: 1px solid rgba(0,0,0,0.08); }
+.nav-logo { font-size: 13px; font-weight: 700; letter-spacing: 5px; color: #1a1a1f; text-transform: uppercase; text-decoration: none; }
+.nav-logo span { color: #c8a44e; }
+.nav-status { font-size: 11px; color: #8a8892; }
+
+.wrap { max-width: 1000px; margin: 0 auto; padding: 44px 28px 60px; }
+.eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9e7c2e; margin-bottom: 6px; }
+.page-title { font-size: 26px; font-weight: 700; color: #1a1a1f; margin-bottom: 2px; letter-spacing: -0.5px; }
+.page-sub { font-size: 12px; color: #8a8892; }
+.gold-bar { width: 36px; height: 3px; background: linear-gradient(90deg,#9e7c2e,#c8a44e); border-radius: 2px; margin: 16px 0 28px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 14px; }
+.card { display: block; background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 18px 20px; text-decoration: none; transition: all 0.15s; }
+.card:hover { border-color: rgba(200,164,78,0.5); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.05); }
+.card.stale { opacity: 0.55; }
+.card-name { font-size: 15px; font-weight: 700; color: #1a1a1f; margin-bottom: 8px; }
+.card-stats { display: flex; gap: 16px; margin-bottom: 10px; }
+.stat-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #8a8892; }
+.stat-value { font-size: 16px; font-weight: 700; color: #1a1a1f; }
+.badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+.badge-warn { background: rgba(245,158,11,0.12); color: #b45309; }
+.badge-stale { background: rgba(0,0,0,0.06); color: #8a8892; }
+.badge-time { background: rgba(22,163,74,0.1); color: #15803d; }
+.empty { text-align: center; padding: 60px 20px; color: #8a8892; }
+.loading { text-align: center; padding: 60px 20px; color: #8a8892; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-logo" href="/">WEB<span>R</span>IS</a>
+  <span class="nav-status" id="navStatus"></span>
+</nav>
+<div class="wrap">
+  <div class="eyebrow">Reporting Portal</div>
+  <div class="page-title">Client Dashboards</div>
+  <div class="page-sub">Meta ads performance · auto-generated from Windsor.ai · refreshed hourly</div>
+  <div class="gold-bar"></div>
+  <div id="grid" class="loading">Loading clients…</div>
+</div>
+
+<script>
+function fmtMoney(n){ if(n==null) return '—'; if(n>=1000) return '$'+(n/1000).toFixed(1)+'k'; return '$'+Math.round(n); }
+function relTime(iso){
+  if(!iso) return 'no data';
+  const mins=Math.round((Date.now()-new Date(iso).getTime())/60000);
+  if(mins<60) return mins+'m ago';
+  const hrs=Math.round(mins/60);
+  if(hrs<24) return hrs+'h ago';
+  return Math.round(hrs/24)+'d ago';
+}
+
+(async()=>{
+  const grid = document.getElementById('grid');
+  try{
+    const res = await fetch('/api/clients');
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const clients = await res.json();
+    if(!clients.length){ grid.className='empty'; grid.textContent='No clients yet. Run the hourly refresh to onboard them.'; return; }
+    document.getElementById('navStatus').textContent = clients.length+' clients';
+    grid.className='grid';
+    grid.innerHTML = clients.map(c=>{
+      const badges = [];
+      if(c.stale) badges.push('<span class="badge badge-stale">stale</span>');
+      if(c.needsDriveLinks) badges.push('<span class="badge badge-warn">⚠ needs Drive links</span>');
+      if(c.generatedAt) badges.push('<span class="badge badge-time">'+relTime(c.generatedAt)+'</span>');
+      return `<a class="card${c.stale?' stale':''}" href="/dashboard.html?client=${encodeURIComponent(c.slug)}">
+        <div class="card-name">${c.displayName}</div>
+        <div class="card-stats">
+          <div><div class="stat-label">Spend MTD</div><div class="stat-value">${fmtMoney(c.spend)}</div></div>
+          <div><div class="stat-label">Leads</div><div class="stat-value">${c.leads!=null?c.leads:'—'}</div></div>
+          <div><div class="stat-label">CPL</div><div class="stat-value">${c.cpl?'$'+Math.round(c.cpl):'—'}</div></div>
+        </div>
+        <div class="badges">${badges.join('')}</div>
+      </a>`;
+    }).join('');
+  }catch(e){
+    grid.className='empty'; grid.textContent='Could not load clients: '+e.message;
+  }
+})();
+</script>
+</body>
+</html>

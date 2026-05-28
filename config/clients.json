@@ -1,0 +1,83 @@
+{
+  "_comment": "Optional overlay metadata. KV snapshots decide which dashboards EXIST; this file only adds Drive links + branding. A client with no entry here still gets a dashboard (with empty driveLinks). Match on windsorAccountName OR windsorAccountId. Keys are the client slug.",
+
+  "_exclude": ["The Blueprint Training 2"],
+
+  "steinger-greene-feiner": {
+    "windsorAccountId": "489864415344200",
+    "windsorAccountName": "Steinger, Greene & Feiner",
+    "displayName": "Steinger, Greene & Feiner",
+    "eyebrow": "P&A · Facebook Ads",
+    "driveLinks": [
+      { "label": "Ad Creatives", "icon": "🎬", "url": "https://drive.google.com/drive/folders/1ksVZn4JVzxH6EGfLnW_A2zdDDQH1CA-s" },
+      { "label": "Upload Folder", "icon": "📁", "url": "https://drive.google.com/drive/folders/1hisQJ7o2dCcql52UrdrgTP3g8QAGTnUY" },
+      { "label": "Creative Requests", "icon": "✏️", "url": "https://drive.google.com/drive/folders/1Q-VMtWd-GDH_to4xFp-N9V07l0df_dDK" }
+    ]
+  },
+
+  "ted-law-firm": {
+    "windsorAccountId": "337591224298445",
+    "windsorAccountName": "TED Law Firm",
+    "displayName": "TED Law Firm",
+    "eyebrow": "P&A · Facebook Ads",
+    "driveLinks": [
+      { "label": "Client Folder", "icon": "📁", "url": "https://drive.google.com/drive/folders/15q99RxGeRVuRG8Uzng_japCT157FkA8v" }
+    ]
+  },
+
+  "chris-ligori-associates": {
+    "windsorAccountId": "1793107131588834",
+    "windsorAccountName": "AC - Chris Ligori & Associates",
+    "displayName": "Chris Ligori & Associates",
+    "eyebrow": "P&A · Facebook Ads",
+    "driveLinks": []
+  },
+
+  "sweet-law": {
+    "windsorAccountId": "2504979786463966",
+    "windsorAccountName": "Sweet Law",
+    "displayName": "Sweet Law",
+    "eyebrow": "P&A · Facebook Ads",
+    "driveLinks": []
+  },
+
+  "shook-stone": {
+    "windsorAccountId": "1107625439858180",
+    "windsorAccountName": "Shook & Stone Meta Ads",
+    "displayName": "Shook & Stone",
+    "eyebrow": "P&A · Facebook Ads",
+    "driveLinks": []
+  },
+
+  "borunda-fomby": {
+    "windsorAccountId": "1061428132703532",
+    "windsorAccountName": "AC - Borunda & Fomby PLLC",
+    "displayName": "Borunda & Fomby PLLC",
+    "eyebrow": "P&A · Facebook Ads",
+    "driveLinks": []
+  },
+
+  "rodriguez-law-firm": {
+    "windsorAccountId": "687362292293635",
+    "windsorAccountName": "Rodriguez Law Firm",
+    "displayName": "Rodriguez Law Firm",
+    "eyebrow": "P&A · Facebook Ads",
+    "driveLinks": []
+  },
+
+  "the-case-ace": {
+    "windsorAccountId": "1089345192842824",
+    "windsorAccountName": "The Case Ace",
+    "displayName": "The Case Ace",
+    "eyebrow": "P&A · Facebook Ads",
+    "driveLinks": []
+  },
+
+  "slip-and-fall-webris": {
+    "windsorAccountId": "631719819766655",
+    "windsorAccountName": "slip and fall webris",
+    "displayName": "Slip and Fall",
+    "eyebrow": "P&A · Facebook Ads",
+    "driveLinks": []
+  }
+}

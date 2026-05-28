@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webris · Steinger, Greene & Feiner</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f8f7f4; color: #5a5862; font-size: 13px; line-height: 1.6; }
+
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(248,247,244,0.97); backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px; height: 52px;
+}
+.nav-logo { font-size: 13px; font-weight: 700; letter-spacing: 5px; color: #1a1a1f; text-transform: uppercase; }
+.nav-logo span { color: #c8a44e; }
+.nav-client { font-size: 12px; color: #8a8892; margin-left: 16px; padding-left: 16px; border-left: 1px solid rgba(0,0,0,0.12); }
+.nav-status { font-size: 11px; color: #8a8892; display: flex; align-items: center; gap: 6px; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: #16a34a; flex-shrink: 0; }
+.status-dot.loading { background: #f59e0b; animation: pulse 1s ease-in-out infinite; }
+.status-dot.error { background: #ef4444; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+
+.layout { display: flex; padding-top: 52px; min-height: 100vh; }
+
+.sidebar {
+  width: 200px; flex-shrink: 0;
+  border-right: 1px solid rgba(0,0,0,0.07);
+  position: sticky; top: 52px; height: calc(100vh - 52px);
+  background: #fff; overflow-y: auto; padding: 24px 0;
+}
+.sb-section { padding: 0 12px; margin-bottom: 24px; }
+.sb-label { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #c8a44e; margin-bottom: 8px; padding: 0 4px; }
+.sb-item { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: #5a5862; transition: all 0.15s; text-decoration: none; }
+.sb-item:hover { background: rgba(200,164,78,0.08); color: #9e7c2e; }
+.sb-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.sb-dot.live { background: #16a34a; }
+.sb-dot.gold { background: #c8a44e; }
+
+.main { flex: 1; padding: 36px 44px 60px; max-width: 900px; }
+
+.eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9e7c2e; margin-bottom: 6px; }
+.page-title { font-size: 26px; font-weight: 700; color: #1a1a1f; margin-bottom: 2px; letter-spacing: -0.5px; }
+.page-sub { font-size: 12px; color: #8a8892; }
+.gold-bar { width: 36px; height: 3px; background: linear-gradient(90deg,#9e7c2e,#c8a44e); border-radius: 2px; margin: 16px 0 28px; }
+.month-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(200,164,78,0.1); border: 1px solid rgba(200,164,78,0.3); border-radius: 20px; padding: 3px 12px; font-size: 11px; font-weight: 700; color: #9e7c2e; letter-spacing: 0.06em; margin-bottom: 24px; }
+
+.block { margin-bottom: 28px; }
+.block-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.block-title { font-size: 14px; font-weight: 700; color: #1a1a1f; }
+.block-action { font-size: 11px; font-weight: 600; color: #c8a44e; cursor: pointer; border: none; background: none; font-family: inherit; padding: 0; }
+.block-action:hover { color: #9e7c2e; }
+
+.kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+.kpi-card { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; padding: 14px 16px; }
+.kpi-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #8a8892; margin-bottom: 4px; }
+.kpi-value { font-size: 24px; font-weight: 700; color: #1a1a1f; margin-bottom: 2px; letter-spacing: -0.5px; }
+.kpi-delta { font-size: 11px; font-weight: 600; }
+.up{color:#16a34a} .down{color:#ef4444} .neutral{color:#8a8892}
+
+.chart-wrap { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; padding: 16px 20px; }
+.chart-container { position: relative; height: 180px; }
+
+.table-wrap { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; overflow: hidden; }
+.ct { width: 100%; border-collapse: collapse; }
+.ct th { text-align: left; padding: 9px 14px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9e7c2e; background: rgba(158,124,46,0.06); border-bottom: 1px solid rgba(158,124,46,0.12); }
+.ct td { padding: 9px 14px; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 12px; color: #5a5862; }
+.ct tr:last-child td { border-bottom: none; }
+.ct td:first-child { font-weight: 600; color: #1a1a1f; max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ct tr:hover td { background: rgba(0,0,0,0.015); }
+
+.req-tabs { display: flex; gap: 4px; margin-bottom: 14px; }
+.req-tab { font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 20px; cursor: pointer; border: 1px solid transparent; color: #8a8892; background: none; font-family: inherit; transition: all 0.15s; }
+.req-tab:hover { background: rgba(0,0,0,0.04); }
+.req-tab.active { background: rgba(200,164,78,0.1); border-color: rgba(200,164,78,0.3); color: #9e7c2e; }
+.req-cnt { background: rgba(200,164,78,0.2); border-radius: 10px; padding: 1px 6px; font-size: 10px; margin-left: 3px; }
+
+.req-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.req-card { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; padding: 14px 16px; }
+.req-num { font-size: 18px; font-weight: 700; color: #c8a44e; margin-bottom: 3px; }
+.req-title { font-size: 12px; font-weight: 600; color: #1a1a1f; margin-bottom: 4px; }
+.req-meta { font-size: 11px; color: #8a8892; }
+.req-notes { font-size: 11px; color: #8a8892; margin-top: 4px; font-style: italic; }
+.req-add { border: 1px dashed rgba(200,164,78,0.4) !important; background: rgba(200,164,78,0.02) !important; display: flex; align-items: center; justify-content: center; cursor: pointer; min-height: 86px; }
+.req-add:hover { background: rgba(200,164,78,0.07) !important; border-color: rgba(200,164,78,0.7) !important; }
+.req-add-inner { text-align: center; color: #c8a44e; }
+.req-add-icon { font-size: 22px; margin-bottom: 2px; line-height: 1; }
+.req-add-text { font-size: 11px; font-weight: 600; }
+.empty-req { text-align: center; padding: 28px; color: #8a8892; font-size: 12px; background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+
+.link-row { display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; margin-bottom: 8px; text-decoration: none; transition: all 0.15s; }
+.link-row:hover { border-color: rgba(200,164,78,0.5); background: rgba(200,164,78,0.04); transform: translateX(2px); }
+.link-icon { width: 30px; height: 30px; border-radius: 7px; background: linear-gradient(135deg,#c8a44e,#9e7c2e); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+.link-text { flex: 1; }
+.link-text strong { display: block; font-size: 12px; font-weight: 600; color: #1a1a1f; }
+.link-text span { font-size: 11px; color: #8a8892; }
+.link-arr { font-size: 14px; color: #c8a44e; }
+
+.notes-box { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; padding: 16px; font-size: 12px; color: #5a5862; line-height: 1.8; min-height: 130px; }
+.notes-box.generating { color: #8a8892; font-style: italic; display: flex; align-items: center; gap: 8px; }
+.notes-spinner { width: 14px; height: 14px; border: 2px solid rgba(200,164,78,0.3); border-top-color: #c8a44e; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+.loading-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 320px; color: #8a8892; gap: 10px; }
+.loading-spinner { width: 30px; height: 30px; border: 3px solid rgba(200,164,78,0.2); border-top-color: #c8a44e; border-radius: 50%; animation: spin 0.8s linear infinite; }
+.error-box { background: #fff9f9; border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 16px 20px; color: #b91c1c; font-size: 12px; line-height: 1.6; margin-bottom: 28px; }
+
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: flex; align-items: center; justify-content: center; }
+.modal { background: #fff; border-radius: 14px; padding: 24px; width: 400px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+.modal-title { font-size: 16px; font-weight: 700; color: #1a1a1f; margin-bottom: 16px; }
+.f-label { font-size: 11px; font-weight: 600; color: #8a8892; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.08em; display: block; }
+.f-input { width: 100%; font-family: inherit; font-size: 12px; padding: 8px 10px; border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; margin-bottom: 12px; outline: none; color: #1a1a1f; background: #fff; }
+.f-input:focus { border-color: #c8a44e; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+.btn { font-family: inherit; font-size: 12px; font-weight: 600; padding: 7px 16px; border-radius: 6px; cursor: pointer; border: none; transition: all 0.15s; }
+.btn-primary { background: #c8a44e; color: #fff; }
+.btn-primary:hover { background: #9e7c2e; }
+.btn-ghost { background: transparent; color: #8a8892; border: 1px solid rgba(0,0,0,0.15); }
+.btn-ghost:hover { background: rgba(0,0,0,0.04); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div style="display:flex;align-items:center;">
+    <div class="nav-logo">WEB<span>R</span>IS</div>
+    <div class="nav-client">Steinger, Greene &amp; Feiner</div>
+  </div>
+  <div class="nav-status">
+    <div class="status-dot loading" id="statusDot"></div>
+    <span id="statusText">Loading data…</span>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sb-section">
+      <div class="sb-label">Quick Links</div>
+      <a class="sb-item" href="https://drive.google.com/drive/folders/1ksVZn4JVzxH6EGfLnW_A2zdDDQH1CA-s?usp=drive_link" target="_blank">
+        <div class="sb-dot live"></div>Ad Creatives
+      </a>
+      <a class="sb-item" href="https://drive.google.com/drive/folders/1hisQJ7o2dCcql52UrdrgTP3g8QAGTnUY?usp=drive_link" target="_blank">
+        <div class="sb-dot live"></div>Upload Folder
+      </a>
+      <a class="sb-item" href="https://drive.google.com/drive/folders/1Q-VMtWd-GDH_to4xFp-N9V07l0df_dDK?usp=drive_link" target="_blank">
+        <div class="sb-dot gold"></div>Creative Requests
+      </a>
+    </div>
+  </aside>
+
+  <main class="main" id="mainContent">
+    <div class="loading-overlay"><div class="loading-spinner"></div><div>Fetching live ad data…</div></div>
+  </main>
+</div>
+
+<div class="modal-bg" id="modalBg" style="display:none;" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-title">New Creative Request</div>
+    <label class="f-label">Ad Title / Concept</label>
+    <input class="f-input" type="text" id="reqTitle" placeholder="e.g. Fired After Pregnancy?">
+    <label class="f-label">Category</label>
+    <input class="f-input" type="text" id="reqCategory" placeholder="e.g. PI, Wrongful Death…">
+    <label class="f-label">Status</label>
+    <select class="f-input" id="reqStatus">
+      <option>Requested</option><option>Filming</option><option>Editing</option><option>Live</option><option>Paused</option>
+    </select>
+    <label class="f-label">Notes (optional)</label>
+    <textarea class="f-input" id="reqNotes" rows="2" style="resize:vertical;"></textarea>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRequest()">Add Request</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOOL_ID   = 'mcp__5feb8334-7f71-4617-8556-e6c992536192__get_data';
+const ACCT_NAME = 'Steinger, Greene & Feiner';
+const MN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const REQUESTS = {};
+let appData = null, loadError = null, ytdChart = null, modalForMonth = null, reqMonth = null;
+
+function pad(n){ return String(n).padStart(2,'0'); }
+function fmtD(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function ymKey(y,m){ return `${y}-${pad(m)}`; }
+function parseRows(r){
+  if(!r) return [];
+  if(Array.isArray(r)) return r;
+  if(r.data && Array.isArray(r.data)) return r.data;
+  if(r.rows && Array.isArray(r.rows)) return r.rows;
+  if(typeof r==='string'){ try{return parseRows(JSON.parse(r));}catch(e){} }
+  return [];
+}
+function normLeads(row){ const a=parseFloat(row.actions_lead)||0,b=parseFloat(row.actions_onsite_conversion_lead_grouped)||0; return a>0?a:b; }
+function sumF(rows,f){ return rows.reduce((s,r)=>s+(parseFloat(r[f])||0),0); }
+function acctRows(rows){ return rows.filter(r=>r.account_name===ACCT_NAME); }
+function fmtMoney(n){ if(!n&&n!==0) return '—'; if(n>=1000) return '$'+(n/1000).toFixed(1)+'k'; return '$'+n.toFixed(0); }
+function fmtK(n){ if(!n&&n!==0) return '—'; if(n>=1000000) return (n/1000000).toFixed(1)+'M'; if(n>=1000) return (n/1000).toFixed(0)+'K'; return String(Math.round(n)); }
+function dClass(v){ return v>2?'up':v<-2?'down':'neutral'; }
+function dArrow(v){ return v>0?'↑':v<0?'↓':'→'; }
+function statusColor(s){ return {Live:'#16a34a',Filming:'#ca8a04',Editing:'#2563eb',Requested:'#9e7c2e',Paused:'#8a8892'}[s]||'#8a8892'; }
+function setStatus(type,text){
+  document.getElementById('statusDot').className='status-dot'+(type==='live'?'':' '+type);
+  document.getElementById('statusText').textContent=text;
+}
+
+(async()=>{
+  const now = new Date();
+  reqMonth = ymKey(now.getFullYear(), now.getMonth()+1);
+  try{
+    appData = await fetchData(now);
+    setStatus('live','Updated '+now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}));
+  }catch(e){
+    loadError = String(e);
+    setStatus('error','Connection error');
+  }
+  render(now);
+})();
+
+async function fetchData(now){
+  const y=now.getFullYear(), m=now.getMonth();
+  const today=fmtD(now), mStart=`${y}-${pad(m+1)}-01`;
+  const pEnd=new Date(y,m,0), pStart=`${pEnd.getFullYear()}-${pad(pEnd.getMonth()+1)}-01`, pEndStr=fmtD(pEnd);
+  const [mtd,prev,camps,ytd] = await Promise.all([
+    window.cowork.callMcpTool(TOOL_ID,{connector:'facebook',fields:['account_name','spend','impressions','link_clicks','actions_lead','actions_onsite_conversion_lead_grouped','cost_per_action_type_lead'],date_from:mStart,date_to:today}),
+    window.cowork.callMcpTool(TOOL_ID,{connector:'facebook',fields:['account_name','spend','impressions','link_clicks','actions_lead','actions_onsite_conversion_lead_grouped','cost_per_action_type_lead'],date_from:pStart,date_to:pEndStr}),
+    window.cowork.callMcpTool(TOOL_ID,{connector:'facebook',fields:['account_name','campaign','spend','impressions','link_clicks','actions_lead','actions_onsite_conversion_lead_grouped','cost_per_action_type_lead'],date_from:mStart,date_to:today}),
+    window.cowork.callMcpTool(TOOL_ID,{connector:'facebook',fields:['account_name','year_month','spend','impressions','actions_lead','actions_onsite_conversion_lead_grouped'],date_from:`${y}-01-01`,date_to:today}),
+  ]);
+  return { mtd:parseRows(mtd), prev:parseRows(prev), camps:parseRows(camps), ytd:parseRows(ytd) };
+}
+
+function render(now){
+  now = now || new Date();
+  const main = document.getElementById('mainContent');
+  const monthLabel = MN[now.getMonth()]+' '+now.getFullYear();
+
+  const header = `
+    <div class="eyebrow">P&A · Facebook Ads</div>
+    <div class="page-title">Steinger, Greene &amp; Feiner</div>
+    <div class="page-sub">Campaign Overview · Live data via Windsor.ai</div>
+    <div class="gold-bar"></div>
+    <div class="month-tag">📅 ${monthLabel}</div>`;
+
+  if(loadError){
+    main.innerHTML = header + `
+      <div class="error-box">⚠️ <strong>Could not connect to Windsor.ai.</strong> Check your connector, then retry.<br><br>
+      <button class="btn btn-primary" onclick="doRefresh()">↻ Retry</button>
+      <small style="display:block;margin-top:8px;color:#8a8892;">${loadError}</small></div>
+      ${renderCreatives(now)}${renderBottom(now,null)}`;
+    return;
+  }
+  if(!appData){
+    main.innerHTML=`<div class="loading-overlay"><div class="loading-spinner"></div><div>Fetching live ad data…</div></div>`;
+    return;
+  }
+
+  const mtdRows=acctRows(appData.mtd), prevRows=acctRows(appData.prev);
+  const campRows=acctRows(appData.camps), ytdRows=acctRows(appData.ytd);
+
+  const spend=sumF(mtdRows,'spend'), leads=mtdRows.reduce((s,r)=>s+normLeads(r),0);
+  const cpl=leads>0?spend/leads:null, impr=sumF(mtdRows,'impressions');
+  const pSpend=sumF(prevRows,'spend'), pLeads=prevRows.reduce((s,r)=>s+normLeads(r),0), pCpl=pLeads>0?pSpend/pLeads:null;
+  const sdelta=pSpend>0?(spend-pSpend)/pSpend*100:null;
+  const ldelta=pLeads>0?(leads-pLeads)/pLeads*100:null;
+  const cdelta=(cpl&&pCpl)?cpl-pCpl:null;
+
+  const ytdMs=[],ytdSp=[],ytdLd=[], y=now.getFullYear();
+  for(let mi=1;mi<=now.getMonth()+1;mi++){
+    const rows=ytdRows.filter(r=>r.year_month===`${y}|${mi}`);
+    ytdMs.push(MS[mi-1]); ytdSp.push(sumF(rows,'spend')); ytdLd.push(rows.reduce((s,r)=>s+normLeads(r),0));
+  }
+
+  main.innerHTML = header + `
+    <div class="block">
+      <div class="block-head"><div class="block-title">Monthly Performance</div><button class="block-action" onclick="doRefresh()">↻ Refresh</button></div>
+      <div class="kpi-row">
+        ${kpi('Ad Spend',fmtMoney(spend),sdelta!=null?dArrow(sdelta)+' '+Math.abs(sdelta).toFixed(0)+'% vs last mo':'—',sdelta)}
+        ${kpi('Leads',leads>0?leads.toLocaleString():'—',ldelta!=null?dArrow(ldelta)+' '+Math.abs(ldelta).toFixed(0)+'% vs last mo':'—',ldelta)}
+        ${kpi('Cost Per Lead',cpl?'$'+cpl.toFixed(0):'—',cdelta!=null?(cdelta<=0?'↓':'↑')+' $'+Math.abs(cdelta).toFixed(0)+' vs last mo':'—',cdelta!=null?(cdelta<=0?5:-5):null)}
+        ${kpi('Impressions',fmtK(impr),'',null)}
+      </div>
+    </div>
+    ${ytdMs.length>1?`<div class="block"><div class="block-head"><div class="block-title">Year-to-Date Trend</div></div><div class="chart-wrap"><div class="chart-container"><canvas id="ytdChart"></canvas></div></div></div>`:''}
+    ${campRows.length>0?renderCampTable(campRows):''}
+    ${renderCreatives(now)}
+    ${renderBottom(now,{spend,leads,cpl,pSpend,pLeads,pCpl,sdelta,ldelta,cdelta,campRows})}`;
+
+  if(ytdMs.length>1){
+    setTimeout(()=>{
+      const ctx=document.getElementById('ytdChart'); if(!ctx) return;
+      if(ytdChart){ytdChart.destroy();ytdChart=null;}
+      ytdChart=new Chart(ctx,{
+        data:{labels:ytdMs,datasets:[
+          {type:'bar',label:'Spend ($)',data:ytdSp,backgroundColor:'rgba(200,164,78,0.75)',borderRadius:4,yAxisID:'y'},
+          {type:'line',label:'Leads',data:ytdLd,borderColor:'rgba(22,163,74,0.9)',backgroundColor:'rgba(22,163,74,0.1)',borderWidth:2,pointRadius:3,fill:false,yAxisID:'y1',tension:0.3}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:true,position:'top',labels:{font:{size:11},boxWidth:10,padding:12}},
+            tooltip:{callbacks:{label:c=>c.dataset.label.includes('Spend')?' $'+c.parsed.y.toLocaleString(undefined,{maximumFractionDigits:0}):'  '+c.parsed.y+' leads'}}},
+          scales:{
+            y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:10},callback:v=>'$'+(v>=1000?(v/1000).toFixed(0)+'k':v)}},
+            y1:{position:'right',grid:{display:false},ticks:{font:{size:10}}},
+            x:{grid:{display:false},ticks:{font:{size:10}}}
+          }
+        }
+      });
+    },50);
+  }
+
+  if(appData) generateNotes(now,{spend,leads,cpl,pSpend,pLeads,pCpl,sdelta,ldelta,cdelta,campRows});
+}
+
+function renderBottom(now, kpis){
+  return `<div class="two-col">
+    <div>
+      <div class="block-head"><div class="block-title">Quick Links</div></div>
+      <a class="link-row" href="https://drive.google.com/drive/folders/1ksVZn4JVzxH6EGfLnW_A2zdDDQH1CA-s?usp=drive_link" target="_blank">
+        <div class="link-icon">🎬</div><div class="link-text"><strong>Ad Creatives</strong><span>drive.google.com</span></div><div class="link-arr">→</div>
+      </a>
+      <a class="link-row" href="https://drive.google.com/drive/folders/1hisQJ7o2dCcql52UrdrgTP3g8QAGTnUY?usp=drive_link" target="_blank">
+        <div class="link-icon">📁</div><div class="link-text"><strong>Upload Folder</strong><span>drive.google.com</span></div><div class="link-arr">→</div>
+      </a>
+      <a class="link-row" href="https://drive.google.com/drive/folders/1Q-VMtWd-GDH_to4xFp-N9V07l0df_dDK?usp=drive_link" target="_blank">
+        <div class="link-icon">✏️</div><div class="link-text"><strong>Creative Requests</strong><span>drive.google.com</span></div><div class="link-arr">→</div>
+      </a>
+    </div>
+    <div>
+      <div class="block-head"><div class="block-title">Webris Notes — ${MN[now.getMonth()]}</div></div>
+      <div class="notes-box generating" id="notesBox"><div class="notes-spinner"></div> Generating summary…</div>
+    </div>
+  </div>`;
+}
+
+async function generateNotes(now, kpis){
+  const el=document.getElementById('notesBox'); if(!el) return;
+  try{
+    const prev=MN[now.getMonth()===0?11:now.getMonth()-1], cur=MN[now.getMonth()];
+    const topCamps=kpis.campRows.slice(0,3).map(r=>`${r.campaign||'Unknown'} ($${(parseFloat(r.spend)||0).toFixed(0)}, ${normLeads(r)} leads)`).join('; ');
+    // Pull creative-level data for deeper analysis
+    const creativeRows = acctRows(parseRows(await window.cowork.callMcpTool(TOOL_ID,{
+      connector:'facebook',
+      fields:['account_name','ad_name','spend','impressions','actions_lead','actions_onsite_conversion_lead_grouped','cost_per_action_type_lead','ctr'],
+      date_from:`${now.getFullYear()}-${pad(now.getMonth()+1)}-01`,
+      date_to:fmtD(now)
+    })));
+    const topAds = [...creativeRows].sort((a,b)=>(parseFloat(b.spend)||0)-(parseFloat(a.spend)||0)).slice(0,8)
+      .map(r=>{ const ld=normLeads(r),sp=parseFloat(r.spend)||0,cp=ld>0?sp/ld:null,ctr=parseFloat(r.ctr)||0;
+        return `"${r.ad_name||'Unknown'}" — spend $${sp.toFixed(0)}, leads ${ld}, CPL ${cp?'$'+cp.toFixed(0):'no leads'}, CTR ${(ctr*100).toFixed(2)}%`;
+      }).join('\n');
+    const note = await window.cowork.askClaude(
+      `You are a creative strategist at Webris, a Facebook ads agency for law firms. Analyze the ad performance for Steinger, Greene & Feiner for ${cur} ${now.getFullYear()} and write a sharp 4-sentence creative analysis.
+
+Overall: Spend ${fmtMoney(kpis.spend)}, ${kpis.leads} leads, CPL ${kpis.cpl?'$'+kpis.cpl.toFixed(0):'N/A'}. vs ${prev}: leads ${kpis.ldelta!=null?kpis.ldelta.toFixed(0)+'%':'N/A'}, CPL ${kpis.cdelta!=null?'$'+kpis.cdelta.toFixed(0)+' change':'N/A'}.
+
+Individual ads this month:
+${topAds||'No ad-level data available.'}
+
+Focus your analysis on: (1) which creative angles or hooks are working and why, (2) which ads are wasting spend with poor CPL or no leads, (3) one specific creative improvement to test next. Be direct and specific — name actual ad titles. No bullet points. No filler phrases.`,
+      []
+    );
+    el.className='notes-box'; el.textContent=note;
+  }catch(e){
+    if(el){el.className='notes-box'; el.textContent='Performance data loaded above. Summary generation unavailable.';}
+  }
+}
+
+function kpi(label,val,delta,dv){
+  return `<div class="kpi-card"><div class="kpi-label">${label}</div><div class="kpi-value">${val}</div><div class="kpi-delta ${dv!=null?dClass(dv):'neutral'}">${delta||'—'}</div></div>`;
+}
+function renderCampTable(rows){
+  const s=[...rows].sort((a,b)=>(parseFloat(b.spend)||0)-(parseFloat(a.spend)||0)).slice(0,8);
+  return `<div class="block"><div class="block-head"><div class="block-title">Campaign Breakdown — MTD</div></div>
+    <div class="table-wrap"><table class="ct"><thead><tr><th>Campaign</th><th>Spend</th><th>Leads</th><th>CPL</th></tr></thead>
+    <tbody>${s.map(r=>{const sp=parseFloat(r.spend)||0,ld=normLeads(r),cp=ld>0?sp/ld:null;
+      return `<tr><td title="${r.campaign||''}">${r.campaign||'Unknown'}</td><td>${fmtMoney(sp)}</td><td>${ld>0?ld:'—'}</td><td>${cp?'$'+cp.toFixed(0):'—'}</td></tr>`;
+    }).join('')}</tbody></table></div></div>`;
+}
+function renderCreatives(now){
+  const tabs=[];
+  for(let i=0;i<3;i++){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const k=ymKey(d.getFullYear(),d.getMonth()+1);
+    tabs.push({key:k,label:MS[d.getMonth()]+' '+d.getFullYear(),cnt:(REQUESTS[k]||[]).length});
+  }
+  const active=tabs.find(t=>t.key===reqMonth)?reqMonth:tabs[0].key;
+  return `<div class="block">
+    <div class="block-head"><div class="block-title">Creative Requests</div><button class="block-action" onclick="openModal('${active}')">+ Add Request</button></div>
+    <div class="req-tabs">${tabs.map(t=>`<button class="req-tab${t.key===active?' active':''}" onclick="switchTab('${t.key}',this)">${t.label}${t.cnt>0?`<span class="req-cnt">${t.cnt}</span>`:''}</button>`).join('')}</div>
+    <div id="reqGrid">${buildReqGrid(active)}</div>
+  </div>`;
+}
+function buildReqGrid(key){
+  const reqs=REQUESTS[key]||[];
+  const add=`<div class="req-card req-add" onclick="openModal('${key}')"><div class="req-add-inner"><div class="req-add-icon">+</div><div class="req-add-text">New Request</div></div></div>`;
+  if(!reqs.length) return `<div class="req-grid"><div class="empty-req">No creative requests for this month yet.</div>${add}</div>`;
+  return `<div class="req-grid">${reqs.map((r,i)=>`<div class="req-card">
+    <div class="req-num">${String(i+1).padStart(2,'0')}</div>
+    <div class="req-title">${r.title}</div>
+    <div class="req-meta">${r.category} · <span style="font-weight:600;color:${statusColor(r.status)}">${r.status}</span></div>
+    ${r.notes?`<div class="req-notes">${r.notes}</div>`:''}
+  </div>`).join('')}${add}</div>`;
+}
+function switchTab(key,btn){
+  reqMonth=key;
+  btn.closest('.req-tabs').querySelectorAll('.req-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('reqGrid').innerHTML=buildReqGrid(key);
+  const ab=btn.closest('.block').querySelector('.block-action');
+  if(ab) ab.setAttribute('onclick',`openModal('${key}')`);
+}
+function openModal(key){
+  modalForMonth=key;
+  ['reqTitle','reqCategory','reqNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('reqStatus').value='Requested';
+  document.getElementById('modalBg').style.display='flex';
+  setTimeout(()=>document.getElementById('reqTitle').focus(),50);
+}
+function closeModal(){ document.getElementById('modalBg').style.display='none'; }
+function saveRequest(){
+  const title=document.getElementById('reqTitle').value.trim(); if(!title){document.getElementById('reqTitle').focus();return;}
+  if(!REQUESTS[modalForMonth]) REQUESTS[modalForMonth]=[];
+  REQUESTS[modalForMonth].push({title,category:document.getElementById('reqCategory').value.trim()||'General',status:document.getElementById('reqStatus').value,notes:document.getElementById('reqNotes').value.trim()});
+  closeModal(); document.getElementById('reqGrid').innerHTML=buildReqGrid(modalForMonth);
+}
+async function doRefresh(){
+  setStatus('loading','Refreshing…');
+  try{const now=new Date(); appData=await fetchData(now); loadError=null; setStatus('live','Updated '+now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})); render(now);}
+  catch(e){loadError=String(e); setStatus('error','Connection error'); render();}
+}
+</script>
+</body>
+</html>

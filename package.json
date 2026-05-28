@@ -1,0 +1,15 @@
+{
+  "name": "webris-reporting",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Webris client reporting portal — auto-generated Meta ads dashboards from Windsor.ai, hosted on Vercel.",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel deploy --prod"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.40.0",
+    "@vercel/kv": "^3.0.0"
+  }
+}
