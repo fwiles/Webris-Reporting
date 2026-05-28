@@ -64,7 +64,7 @@ function relTime(iso){
 (async()=>{
   const grid = document.getElementById('grid');
   try{
-    const res = await fetch('/api/clients');
+    const res = await fetch('/api/clients?t=' + Date.now(), { cache: 'no-store' });
     if(!res.ok) throw new Error('HTTP '+res.status);
     const clients = await res.json();
     if(!clients.length){ grid.className='empty'; grid.textContent='No clients yet. Run the hourly refresh to onboard them.'; return; }

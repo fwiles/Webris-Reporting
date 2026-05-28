@@ -145,7 +145,7 @@ const slug = new URLSearchParams(location.search).get('client');
 (async()=>{
   if(!slug){ showError('No client specified. Return to the <a href="/">client list</a>.'); return; }
   try{
-    const res = await fetch('/api/data?client='+encodeURIComponent(slug));
+    const res = await fetch('/api/data?client='+encodeURIComponent(slug)+'&t='+Date.now(), { cache: 'no-store' });
     if(res.status===404){ showError('No data yet for this client. The hourly refresh may not have run. <a href="/">Back to list</a>.'); return; }
     if(!res.ok) throw new Error('HTTP '+res.status);
     const snap = await res.json();
