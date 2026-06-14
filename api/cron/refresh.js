@@ -5,7 +5,7 @@
 // Protected by CRON_SECRET: Vercel Cron sends `Authorization: Bearer $CRON_SECRET`.
 
 import { discoverAccounts, fetchAllData, fetchAllAdRows } from '../../lib/windsor.js';
-import { buildSnapshot, topAdsForNote } from '../../lib/metrics.js';
+import { buildSnapshot, topAds, topAdsForNote } from '../../lib/metrics.js';
 import { resolveClient, clientMeta, isExcluded } from '../../lib/clients.js';
 import { generateNote } from '../../lib/notes.js';
 import { getRoster, saveRoster, getSnapshot, saveSnapshot } from '../../lib/store.js';
@@ -75,6 +75,9 @@ export default async function handler(req, res) {
       // Compute KPIs from the shared batch, filtered to this account.
       const computed = buildSnapshot(raw, meta.windsorAccountName, now);
 
+      // Top 10 ads (with creative thumbnails) for the dashboard table.
+      const ads = topAds(adRows, meta.windsorAccountName);
+
       // Daily AI note: reuse the prior note unless it's from a different day.
       const prevSnap = await getSnapshot(slug);
       let note = prevSnap?.note || null;
@@ -92,6 +95,7 @@ export default async function handler(req, res) {
         generatedAt: now.toISOString(),
         client: meta,
         ...computed,
+        ads,
         note,
         noteDate,
       });
