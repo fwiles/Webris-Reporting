@@ -2,8 +2,11 @@
 // Active (non-stale) clients first. Pulls the lightweight client meta from each snapshot.
 
 import { getRoster, getSnapshot } from '../lib/store.js';
+import { isAuthed } from '../lib/auth.js';
 
 export default async function handler(req, res) {
+  if (!isAuthed(req)) return res.status(401).json({ error: 'unauthorized' });
+
   const roster = await getRoster();
   const slugs = Object.keys(roster);
 

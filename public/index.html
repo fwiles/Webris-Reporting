@@ -35,12 +35,28 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .badge-time { background: rgba(22,163,74,0.1); color: #15803d; }
 .empty { text-align: center; padding: 60px 20px; color: #8a8892; }
 .loading { text-align: center; padding: 60px 20px; color: #8a8892; }
+
+.refresh-btn { font: inherit; font-size: 11px; font-weight: 600; color: #9e7c2e; background: rgba(200,164,78,0.1); border: 1px solid rgba(200,164,78,0.35); border-radius: 6px; padding: 5px 12px; cursor: pointer; transition: all 0.15s; }
+.refresh-btn:hover:not(:disabled) { background: rgba(200,164,78,0.18); }
+.refresh-btn:disabled { opacity: 0.5; cursor: default; }
+
+.login { max-width: 320px; margin: 40px auto 0; background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 28px 24px; display: flex; flex-direction: column; gap: 12px; }
+.login-title { font-size: 15px; font-weight: 700; color: #1a1a1f; text-align: center; }
+.login-sub { font-size: 11px; color: #8a8892; text-align: center; margin-top: -6px; }
+.login input { font: inherit; font-size: 13px; padding: 9px 12px; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; outline: none; }
+.login input:focus { border-color: rgba(200,164,78,0.6); }
+.login button { font: inherit; font-size: 13px; font-weight: 600; color: #fff; background: linear-gradient(135deg,#c8a44e,#9e7c2e); border: none; border-radius: 8px; padding: 9px; cursor: pointer; }
+.login button:disabled { opacity: 0.6; cursor: default; }
+.login-err { font-size: 11px; color: #b91c1c; text-align: center; min-height: 14px; }
 </style>
 </head>
 <body>
 <nav class="nav">
   <a class="nav-logo" href="/">WEB<span>R</span>IS</a>
-  <span class="nav-status" id="navStatus"></span>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <span class="nav-status" id="navStatus"></span>
+    <button class="refresh-btn" id="refreshAllBtn" style="display:none;">↻ Refresh all</button>
+  </div>
 </nav>
 <div class="wrap">
   <div class="eyebrow">Reporting Portal</div>
@@ -61,34 +77,93 @@ function relTime(iso){
   return Math.round(hrs/24)+'d ago';
 }
 
-(async()=>{
-  const grid = document.getElementById('grid');
+const grid = document.getElementById('grid');
+const navStatus = document.getElementById('navStatus');
+const refreshBtn = document.getElementById('refreshAllBtn');
+
+function showLogin(){
+  refreshBtn.style.display = 'none';
+  navStatus.textContent = '';
+  grid.className = '';
+  grid.innerHTML = `<form id="loginForm" class="login">
+    <div class="login-title">🔒 Portal access</div>
+    <div class="login-sub">Enter the password to view all client dashboards.</div>
+    <input type="password" id="pw" placeholder="Password" autocomplete="current-password" autofocus />
+    <button type="submit" id="loginBtn">Enter</button>
+    <div class="login-err" id="loginErr"></div>
+  </form>`;
+  document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    const err = document.getElementById('loginErr');
+    err.textContent = '';
+    btn.disabled = true;
+    try{
+      const r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password: document.getElementById('pw').value }) });
+      if(r.ok){ loadClients(); return; }
+      if(r.status===503){ err.textContent='Portal password not configured yet.'; }
+      else { err.textContent='Incorrect password.'; }
+    }catch(_){
+      err.textContent='Login failed. Try again.';
+    }finally{
+      btn.disabled = false;
+    }
+  });
+}
+
+function renderClients(clients){
+  if(!clients.length){ grid.className='empty'; grid.textContent='No clients yet. Run a refresh to onboard them.'; return; }
+  navStatus.textContent = clients.length+' clients';
+  grid.className='grid';
+  grid.innerHTML = clients.map(c=>{
+    const badges = [];
+    if(c.stale) badges.push('<span class="badge badge-stale">stale</span>');
+    if(c.needsDriveLinks) badges.push('<span class="badge badge-warn">⚠ needs Drive links</span>');
+    if(c.generatedAt) badges.push('<span class="badge badge-time">'+relTime(c.generatedAt)+'</span>');
+    return `<a class="card${c.stale?' stale':''}" href="/dashboard.html?client=${encodeURIComponent(c.slug)}">
+      <div class="card-name">${c.displayName}</div>
+      <div class="card-stats">
+        <div><div class="stat-label">Spend MTD</div><div class="stat-value">${fmtMoney(c.spend)}</div></div>
+        <div><div class="stat-label">Leads</div><div class="stat-value">${c.leads!=null?c.leads:'—'}</div></div>
+        <div><div class="stat-label">CPL</div><div class="stat-value">${c.cpl?'$'+Math.round(c.cpl):'—'}</div></div>
+      </div>
+      <div class="badges">${badges.join('')}</div>
+    </a>`;
+  }).join('');
+}
+
+async function loadClients(){
+  grid.className='loading'; grid.textContent='Loading clients…';
+  let res;
   try{
-    const res = await fetch('/api/clients?t=' + Date.now(), { cache: 'no-store' });
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const clients = await res.json();
-    if(!clients.length){ grid.className='empty'; grid.textContent='No clients yet. Run the hourly refresh to onboard them.'; return; }
-    document.getElementById('navStatus').textContent = clients.length+' clients';
-    grid.className='grid';
-    grid.innerHTML = clients.map(c=>{
-      const badges = [];
-      if(c.stale) badges.push('<span class="badge badge-stale">stale</span>');
-      if(c.needsDriveLinks) badges.push('<span class="badge badge-warn">⚠ needs Drive links</span>');
-      if(c.generatedAt) badges.push('<span class="badge badge-time">'+relTime(c.generatedAt)+'</span>');
-      return `<a class="card${c.stale?' stale':''}" href="/dashboard.html?client=${encodeURIComponent(c.slug)}">
-        <div class="card-name">${c.displayName}</div>
-        <div class="card-stats">
-          <div><div class="stat-label">Spend MTD</div><div class="stat-value">${fmtMoney(c.spend)}</div></div>
-          <div><div class="stat-label">Leads</div><div class="stat-value">${c.leads!=null?c.leads:'—'}</div></div>
-          <div><div class="stat-label">CPL</div><div class="stat-value">${c.cpl?'$'+Math.round(c.cpl):'—'}</div></div>
-        </div>
-        <div class="badges">${badges.join('')}</div>
-      </a>`;
-    }).join('');
+    res = await fetch('/api/clients?t=' + Date.now(), { cache: 'no-store' });
   }catch(e){
-    grid.className='empty'; grid.textContent='Could not load clients: '+e.message;
+    grid.className='empty'; grid.textContent='Could not load clients: '+e.message; return;
   }
-})();
+  if(res.status===401){ showLogin(); return; }
+  if(!res.ok){ grid.className='empty'; grid.textContent='Could not load clients: HTTP '+res.status; return; }
+  refreshBtn.style.display = '';
+  renderClients(await res.json());
+}
+
+refreshBtn.addEventListener('click', async ()=>{
+  if(!confirm('Refresh all clients now? This re-pulls every account from Windsor and can take a minute or two.')) return;
+  const orig = refreshBtn.textContent;
+  refreshBtn.disabled = true; refreshBtn.textContent = '↻ Refreshing…';
+  navStatus.textContent = 'Refreshing…';
+  try{
+    const r = await fetch('/api/refresh', { method:'POST' });
+    if(r.status===401){ showLogin(); return; }
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    await loadClients();
+  }catch(e){
+    alert('Refresh failed: '+e.message);
+  }finally{
+    refreshBtn.disabled = false; refreshBtn.textContent = orig;
+  }
+});
+
+loadClients();
 </script>
 </body>
 </html>
